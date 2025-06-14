@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import AuthScreen from "@/components/auth/AuthScreen";
 
 const Index = () => {
-  const { user, isLoading } = useAuth();
+  const { user, userProfile, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -14,8 +14,8 @@ const Index = () => {
     );
   }
 
-  if (user) {
-    if (user.role === 'candidato') {
+  if (user && userProfile) {
+    if (userProfile.rol === 'candidato') {
       return <Navigate to="/candidate/dashboard" replace />;
     }
     return <Navigate to="/dashboard" replace />;

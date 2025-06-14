@@ -6,17 +6,20 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 
 const AuthScreen = () => {
-  const { login } = useAuth();
+  const { signIn, signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [loginForm, setLoginForm] = useState({ username: '', password: '' });
+  const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [registerForm, setRegisterForm] = useState({ 
     username: '', 
     email: '', 
     password: '', 
-    confirmPassword: '' 
+    confirmPassword: '',
+    role: 'candidato',
+    full_name: ''
   });
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -24,8 +27,14 @@ const AuthScreen = () => {
     setIsLoading(true);
     
     try {
-      const success = await login(loginForm);
-      if (success) {
+      const { error } = await signIn(loginForm.email, loginForm.password);
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message || "Credenciales incorrectas",
+          variant: "destructive"
+        });
+      } else {
         toast({
           title: "¡Bienvenido!",
           description: "Inicio de sesión exitoso",
@@ -34,7 +43,7 @@ const AuthScreen = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Credenciales incorrectas",
+        description: "Error al iniciar sesión",
         variant: "destructive"
       });
     } finally {
@@ -44,6 +53,7 @@ const AuthScreen = () => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (registerForm.password !== registerForm.confirmPassword) {
       toast({
         title: "Error",
@@ -52,11 +62,59 @@ const AuthScreen = () => {
       });
       return;
     }
+
+    if (registerForm.password.length < 6) {
+      toast({
+        title: "Error",
+        description: "La contraseña debe tener al menos 6 caracteres",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsLoading(true);
     
-    toast({
-      title: "Registro exitoso",
-      description: "Tu cuenta ha sido creada. Puedes iniciar sesión ahora.",
-    });
+    try {
+      const { error } = await signUp(
+        registerForm.email, 
+        registerForm.password,
+        {
+          username: registerForm.username,
+          role: registerForm.role,
+          full_name: registerForm.full_name
+        }
+      );
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message || "Error al crear la cuenta",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Registro exitoso",
+          description: "Revisa tu email para confirmar tu cuenta",
+        });
+        // Reset form
+        setRegisterForm({
+          username: '', 
+          email: '', 
+          password: '', 
+          confirmPassword: '',
+          role: 'candidato',
+          full_name: ''
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Error al crear la cuenta",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -85,19 +143,19 @@ const AuthScreen = () => {
               <CardHeader className="space-y-1 pb-4">
                 <CardTitle>Iniciar Sesión</CardTitle>
                 <CardDescription>
-                  Ingresa tus credenciales para acceder al sistema
+                  Ingresa tu email y contraseña para acceder al sistema
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="username">Usuario</Label>
+                    <Label htmlFor="email">Email</Label>
                     <Input
-                      id="username"
-                      type="text"
-                      placeholder="empleador o candidate"
-                      value={loginForm.username}
-                      onChange={(e) => setLoginForm({...loginForm, username: e.target.value})}
+                      id="email"
+                      type="email"
+                      placeholder="tu@email.com"
+                      value={loginForm.email}
+                      onChange={(e) => setLoginForm({...loginForm, email: e.target.value})}
                       required
                     />
                   </div>
@@ -127,11 +185,22 @@ const AuthScreen = () => {
               <CardHeader className="space-y-1 pb-4">
                 <CardTitle>Crear Cuenta</CardTitle>
                 <CardDescription>
-                  Regístrate como candidato en el sistema
+                  Regístrate en el sistema de Aptitud Analytica
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleRegister} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="full-name">Nombre Completo</Label>
+                    <Input
+                      id="full-name"
+                      type="text"
+                      placeholder="Tu nombre completo"
+                      value={registerForm.full_name}
+                      onChange={(e) => setRegisterForm({...registerForm, full_name: e.target.value})}
+                      required
+                    />
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="reg-username">Usuario</Label>
                     <Input
@@ -144,15 +213,27 @@ const AuthScreen = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email">Correo Electrónico</Label>
+                    <Label htmlFor="reg-email">Correo Electrónico</Label>
                     <Input
-                      id="email"
+                      id="reg-email"
                       type="email"
                       placeholder="tu@email.com"
                       value={registerForm.email}
                       onChange={(e) => setRegisterForm({...registerForm, email: e.target.value})}
                       required
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="role">Tipo de Usuario</Label>
+                    <Select value={registerForm.role} onValueChange={(value) => setRegisterForm({...registerForm, role: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona tu rol" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="candidato">Candidato</SelectItem>
+                        <SelectItem value="empleador">Empleador</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="reg-password">Contraseña</Label>
@@ -163,6 +244,7 @@ const AuthScreen = () => {
                       value={registerForm.password}
                       onChange={(e) => setRegisterForm({...registerForm, password: e.target.value})}
                       required
+                      minLength={6}
                     />
                   </div>
                   <div className="space-y-2">
@@ -179,8 +261,9 @@ const AuthScreen = () => {
                   <Button 
                     type="submit" 
                     className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                    disabled={isLoading}
                   >
-                    Crear Cuenta
+                    {isLoading ? "Creando cuenta..." : "Crear Cuenta"}
                   </Button>
                 </form>
               </CardContent>
@@ -189,7 +272,7 @@ const AuthScreen = () => {
         </Card>
         
         <div className="text-center text-sm text-slate-500">
-          <p>Demo: usa "empleador" o "candidate" como usuario</p>
+          <p>Usa tu email real para recibir la confirmación de registro</p>
         </div>
       </div>
     </div>

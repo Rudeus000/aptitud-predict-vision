@@ -9,7 +9,322 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      datos_documentos_procesados: {
+        Row: {
+          data_extraida: Json
+          documento_id: number
+          fecha_procesamiento: string | null
+          habilidades_indexadas: string[] | null
+          procesado_id: number
+          tipo_entidad_procesada: string
+        }
+        Insert: {
+          data_extraida: Json
+          documento_id: number
+          fecha_procesamiento?: string | null
+          habilidades_indexadas?: string[] | null
+          procesado_id?: number
+          tipo_entidad_procesada: string
+        }
+        Update: {
+          data_extraida?: Json
+          documento_id?: number
+          fecha_procesamiento?: string | null
+          habilidades_indexadas?: string[] | null
+          procesado_id?: number
+          tipo_entidad_procesada?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "datos_documentos_procesados_documento_id_fkey"
+            columns: ["documento_id"]
+            isOneToOne: true
+            referencedRelation: "documentos_cargados"
+            referencedColumns: ["documento_id"]
+          },
+        ]
+      }
+      documentos_cargados: {
+        Row: {
+          contenido_raw_texto: string | null
+          documento_id: number
+          fecha_carga: string | null
+          metadata_documento: Json | null
+          mime_type: string | null
+          nombre_archivo: string
+          ruta_almacenamiento_original: string | null
+          tamano_bytes: number | null
+          uploader_id: string
+        }
+        Insert: {
+          contenido_raw_texto?: string | null
+          documento_id?: number
+          fecha_carga?: string | null
+          metadata_documento?: Json | null
+          mime_type?: string | null
+          nombre_archivo: string
+          ruta_almacenamiento_original?: string | null
+          tamano_bytes?: number | null
+          uploader_id: string
+        }
+        Update: {
+          contenido_raw_texto?: string | null
+          documento_id?: number
+          fecha_carga?: string | null
+          metadata_documento?: Json | null
+          mime_type?: string | null
+          nombre_archivo?: string
+          ruta_almacenamiento_original?: string | null
+          tamano_bytes?: number | null
+          uploader_id?: string
+        }
+        Relationships: []
+      }
+      encuestas: {
+        Row: {
+          activa: boolean | null
+          descripcion: string | null
+          encuesta_id: number
+          fecha_creacion: string | null
+          preguntas: Json
+          tipo_encuesta: string
+          titulo: string
+        }
+        Insert: {
+          activa?: boolean | null
+          descripcion?: string | null
+          encuesta_id?: number
+          fecha_creacion?: string | null
+          preguntas: Json
+          tipo_encuesta: string
+          titulo: string
+        }
+        Update: {
+          activa?: boolean | null
+          descripcion?: string | null
+          encuesta_id?: number
+          fecha_creacion?: string | null
+          preguntas?: Json
+          tipo_encuesta?: string
+          titulo?: string
+        }
+        Relationships: []
+      }
+      modelos_predictivos: {
+        Row: {
+          activo: boolean | null
+          fecha_entrenamiento: string | null
+          metrica_precision: number | null
+          modelo_id: number
+          nombre_modelo: string
+          parametros_utilizados: Json | null
+          ruta_modelo_almacenado: string | null
+          version_numero: string
+        }
+        Insert: {
+          activo?: boolean | null
+          fecha_entrenamiento?: string | null
+          metrica_precision?: number | null
+          modelo_id?: number
+          nombre_modelo: string
+          parametros_utilizados?: Json | null
+          ruta_modelo_almacenado?: string | null
+          version_numero: string
+        }
+        Update: {
+          activo?: boolean | null
+          fecha_entrenamiento?: string | null
+          metrica_precision?: number | null
+          modelo_id?: number
+          nombre_modelo?: string
+          parametros_utilizados?: Json | null
+          ruta_modelo_almacenado?: string | null
+          version_numero?: string
+        }
+        Relationships: []
+      }
+      postulaciones: {
+        Row: {
+          estado: string
+          fecha_postulacion: string | null
+          feedback_reclutador: string | null
+          nombre_vacante: string
+          postulacion_id: number
+          procesado_data_id: number
+          reclutador_id: string | null
+        }
+        Insert: {
+          estado?: string
+          fecha_postulacion?: string | null
+          feedback_reclutador?: string | null
+          nombre_vacante: string
+          postulacion_id?: number
+          procesado_data_id: number
+          reclutador_id?: string | null
+        }
+        Update: {
+          estado?: string
+          fecha_postulacion?: string | null
+          feedback_reclutador?: string | null
+          nombre_vacante?: string
+          postulacion_id?: number
+          procesado_data_id?: number
+          reclutador_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "postulaciones_procesado_data_id_fkey"
+            columns: ["procesado_data_id"]
+            isOneToOne: false
+            referencedRelation: "datos_documentos_procesados"
+            referencedColumns: ["procesado_id"]
+          },
+        ]
+      }
+      predicciones: {
+        Row: {
+          factores_clave: string[] | null
+          fecha_prediccion: string | null
+          prediccion_id: number
+          probabilidad_exito: number | null
+          procesado_data_id: number
+          version_modelo_ml_id: number
+        }
+        Insert: {
+          factores_clave?: string[] | null
+          fecha_prediccion?: string | null
+          prediccion_id?: number
+          probabilidad_exito?: number | null
+          procesado_data_id: number
+          version_modelo_ml_id: number
+        }
+        Update: {
+          factores_clave?: string[] | null
+          fecha_prediccion?: string | null
+          prediccion_id?: number
+          probabilidad_exito?: number | null
+          procesado_data_id?: number
+          version_modelo_ml_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "predicciones_procesado_data_id_fkey"
+            columns: ["procesado_data_id"]
+            isOneToOne: true
+            referencedRelation: "datos_documentos_procesados"
+            referencedColumns: ["procesado_id"]
+          },
+          {
+            foreignKeyName: "predicciones_version_modelo_ml_id_fkey"
+            columns: ["version_modelo_ml_id"]
+            isOneToOne: false
+            referencedRelation: "modelos_predictivos"
+            referencedColumns: ["modelo_id"]
+          },
+        ]
+      }
+      recomendaciones: {
+        Row: {
+          descripcion: string | null
+          fecha_generacion: string | null
+          prioridad: string | null
+          recomendacion_id: number
+          tipo: string
+          titulo: string
+        }
+        Insert: {
+          descripcion?: string | null
+          fecha_generacion?: string | null
+          prioridad?: string | null
+          recomendacion_id?: number
+          tipo: string
+          titulo: string
+        }
+        Update: {
+          descripcion?: string | null
+          fecha_generacion?: string | null
+          prioridad?: string | null
+          recomendacion_id?: number
+          tipo?: string
+          titulo?: string
+        }
+        Relationships: []
+      }
+      respuestas_encuesta: {
+        Row: {
+          calificacion_desempeno_real: number | null
+          encuesta_id: number
+          fecha_respuesta: string | null
+          procesado_data_asociado_id: number | null
+          respuesta_id: number
+          respuestas: Json
+          usuario_respuesta_id: string
+        }
+        Insert: {
+          calificacion_desempeno_real?: number | null
+          encuesta_id: number
+          fecha_respuesta?: string | null
+          procesado_data_asociado_id?: number | null
+          respuesta_id?: number
+          respuestas: Json
+          usuario_respuesta_id: string
+        }
+        Update: {
+          calificacion_desempeno_real?: number | null
+          encuesta_id?: number
+          fecha_respuesta?: string | null
+          procesado_data_asociado_id?: number | null
+          respuesta_id?: number
+          respuestas?: Json
+          usuario_respuesta_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "respuestas_encuesta_encuesta_id_fkey"
+            columns: ["encuesta_id"]
+            isOneToOne: false
+            referencedRelation: "encuestas"
+            referencedColumns: ["encuesta_id"]
+          },
+          {
+            foreignKeyName: "respuestas_encuesta_procesado_data_asociado_id_fkey"
+            columns: ["procesado_data_asociado_id"]
+            isOneToOne: false
+            referencedRelation: "datos_documentos_procesados"
+            referencedColumns: ["procesado_id"]
+          },
+        ]
+      }
+      usuarios: {
+        Row: {
+          fecha_creacion: string | null
+          metadata_usuario: Json | null
+          nombre_completo_perfil: string | null
+          nombre_usuario: string
+          rol: string
+          ultimo_login: string | null
+          usuario_id: string
+        }
+        Insert: {
+          fecha_creacion?: string | null
+          metadata_usuario?: Json | null
+          nombre_completo_perfil?: string | null
+          nombre_usuario: string
+          rol?: string
+          ultimo_login?: string | null
+          usuario_id: string
+        }
+        Update: {
+          fecha_creacion?: string | null
+          metadata_usuario?: Json | null
+          nombre_completo_perfil?: string | null
+          nombre_usuario?: string
+          rol?: string
+          ultimo_login?: string | null
+          usuario_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

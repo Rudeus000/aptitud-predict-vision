@@ -6,12 +6,12 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 const Sidebar = () => {
-  const { user } = useAuth();
+  const { userProfile } = useAuth();
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const getMenuItems = () => {
-    if (user?.role === 'candidato') {
+    if (userProfile?.rol === 'candidato') {
       return [
         { name: 'Dashboard', path: '/candidate/dashboard', icon: '📊' },
         { name: 'Subir CV', path: '/candidate/upload', icon: '📄' },
@@ -76,16 +76,16 @@ const Sidebar = () => {
         )}>
           <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
             <span className="text-white text-sm font-semibold">
-              {user?.nombre_usuario.charAt(0).toUpperCase()}
+              {userProfile?.nombre_usuario?.charAt(0)?.toUpperCase() || 'U'}
             </span>
           </div>
           {!isCollapsed && (
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-slate-800 truncate">
-                {user?.nombre_usuario}
+                {userProfile?.nombre_usuario || 'Usuario'}
               </p>
               <p className="text-xs text-slate-500 capitalize">
-                {user?.role}
+                {userProfile?.rol || 'Usuario'}
               </p>
             </div>
           )}
