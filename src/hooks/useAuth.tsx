@@ -80,7 +80,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      setUserProfile(data);
+      // Type cast the rol property to ensure it matches our interface
+      const profileData: UserProfile = {
+        ...data,
+        rol: data.rol as 'empleador' | 'candidato' | 'administrador'
+      };
+
+      setUserProfile(profileData);
     } catch (error) {
       console.error('Error fetching user profile:', error);
     }
@@ -144,14 +150,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Legacy support - map userProfile to the old user format
-  const legacyUser = userProfile ? {
-    id: userProfile.usuario_id,
-    nombre_usuario: userProfile.nombre_usuario,
-    email: user?.email || '',
-    role: userProfile.rol
-  } : null;
-
   return (
     <AuthContext.Provider value={{ 
       user, 
@@ -160,15 +158,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       isLoading, 
       signUp, 
       signIn, 
-      signOut,
-      // Legacy support
-      login: async ({ username, password }: { username: string; password: string }) => {
-        const { error } = await signIn(username, password);
-        return !error;
-      },
-      logout: signOut,
-      user: legacyUser
-    } as any}>
+      signOut
+    }}>
       {children}
     </AuthContext.Provider>
   );
