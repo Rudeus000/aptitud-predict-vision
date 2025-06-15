@@ -4,6 +4,16 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { 
+  BarChart3, 
+  Upload, 
+  Users, 
+  Lightbulb, 
+  FileText, 
+  ChevronLeft, 
+  ChevronRight,
+  Brain
+} from 'lucide-react';
 
 const Sidebar = () => {
   const { userProfile } = useAuth();
@@ -13,16 +23,16 @@ const Sidebar = () => {
   const getMenuItems = () => {
     if (userProfile?.rol === 'candidato') {
       return [
-        { name: 'Dashboard', path: '/candidate/dashboard', icon: '📊' },
-        { name: 'Subir CV', path: '/candidate/upload', icon: '📄' },
+        { name: 'Dashboard', path: '/candidate/dashboard', icon: BarChart3 },
+        { name: 'Subir CV', path: '/candidate/upload', icon: FileText },
       ];
     }
     
     return [
-      { name: 'Dashboard', path: '/dashboard', icon: '📊' },
-      { name: 'Subir CVs', path: '/upload', icon: '📤' },
-      { name: 'Candidatos', path: '/results', icon: '👥' },
-      { name: 'Recomendaciones', path: '/recommendations', icon: '💡' },
+      { name: 'Dashboard', path: '/dashboard', icon: BarChart3 },
+      { name: 'Subir CVs', path: '/upload', icon: Upload },
+      { name: 'Candidatos', path: '/results', icon: Users },
+      { name: 'Recomendaciones', path: '/recommendations', icon: Lightbulb },
     ];
   };
 
@@ -31,10 +41,10 @@ const Sidebar = () => {
       "bg-white shadow-xl border-r border-slate-200 transition-all duration-300 flex flex-col",
       isCollapsed ? "w-16" : "w-64"
     )}>
-      <div className="p-4 border-b border-slate-200">
+      <div className="p-4 border-b border-slate-200 relative">
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">AA</span>
+            <Brain className="h-5 w-5 text-white" />
           </div>
           {!isCollapsed && (
             <div>
@@ -47,26 +57,29 @@ const Sidebar = () => {
           variant="ghost"
           size="sm"
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute right-2 top-4 w-6 h-6 p-0"
+          className="absolute right-2 top-4 w-6 h-6 p-0 hover:bg-slate-100"
         >
-          {isCollapsed ? '→' : '←'}
+          {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </Button>
       </div>
 
       <nav className="flex-1 p-4 space-y-2">
-        {getMenuItems().map((item) => (
-          <Link
-            key={item.path}
-            to={item.path}
-            className={cn(
-              "flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 hover:bg-blue-50",
-              location.pathname === item.path ? "bg-blue-100 text-blue-700 border-r-2 border-blue-600" : "text-slate-600"
-            )}
-          >
-            <span className="text-lg">{item.icon}</span>
-            {!isCollapsed && <span className="font-medium">{item.name}</span>}
-          </Link>
-        ))}
+        {getMenuItems().map((item) => {
+          const IconComponent = item.icon;
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={cn(
+                "flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 hover:bg-blue-50",
+                location.pathname === item.path ? "bg-blue-100 text-blue-700 border-r-2 border-blue-600" : "text-slate-600"
+              )}
+            >
+              <IconComponent className="h-5 w-5" />
+              {!isCollapsed && <span className="font-medium">{item.name}</span>}
+            </Link>
+          );
+        })}
       </nav>
 
       <div className="p-4 border-t border-slate-200">

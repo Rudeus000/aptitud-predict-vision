@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { toast } from '@/hooks/use-toast';
+import { Upload, FileText, X, Brain, Clock, CheckCircle } from 'lucide-react';
 
 const UploadScreen = () => {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
@@ -51,7 +52,10 @@ const UploadScreen = () => {
       <div className="max-w-4xl mx-auto space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">Carga de Currículums</CardTitle>
+            <div className="flex items-center space-x-2">
+              <Upload className="h-6 w-6 text-blue-600" />
+              <CardTitle className="text-2xl">Carga de Currículums</CardTitle>
+            </div>
             <CardDescription>
               Sube los CVs de los candidatos para análisis automático con IA
             </CardDescription>
@@ -63,7 +67,7 @@ const UploadScreen = () => {
             >
               <div className="space-y-4">
                 <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-2xl">📄</span>
+                  <Upload className="h-8 w-8 text-blue-600" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-slate-800">
@@ -86,15 +90,16 @@ const UploadScreen = () => {
 
             {uploadedFiles.length > 0 && (
               <div className="space-y-4">
-                <h4 className="font-semibold text-slate-800">
-                  Archivos Cargados ({uploadedFiles.length})
+                <h4 className="font-semibold text-slate-800 flex items-center space-x-2">
+                  <FileText className="h-5 w-5" />
+                  <span>Archivos Cargados ({uploadedFiles.length})</span>
                 </h4>
                 <div className="space-y-2 max-h-60 overflow-y-auto">
                   {uploadedFiles.map((file, index) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-white border rounded-lg">
                       <div className="flex items-center space-x-3">
                         <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
-                          <span className="text-sm">📄</span>
+                          <FileText className="h-4 w-4 text-blue-600" />
                         </div>
                         <div>
                           <p className="font-medium text-slate-800">{file.name}</p>
@@ -109,7 +114,7 @@ const UploadScreen = () => {
                         onClick={() => removeFile(index)}
                         className="text-red-500 hover:text-red-700"
                       >
-                        ✕
+                        <X className="h-4 w-4" />
                       </Button>
                     </div>
                   ))}
@@ -120,7 +125,10 @@ const UploadScreen = () => {
             {isProcessing && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Procesando archivos...</span>
+                  <div className="flex items-center space-x-2">
+                    <Brain className="h-5 w-5 text-blue-600" />
+                    <span className="text-sm font-medium">Procesando archivos...</span>
+                  </div>
                   <span className="text-sm text-slate-500">{processingProgress}%</span>
                 </div>
                 <Progress value={processingProgress} className="h-2" />
@@ -136,6 +144,7 @@ const UploadScreen = () => {
                 disabled={uploadedFiles.length === 0 || isProcessing}
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
               >
+                <Brain className="h-4 w-4 mr-2" />
                 {isProcessing ? "Procesando..." : `Analizar ${uploadedFiles.length} CV(s)`}
               </Button>
               
@@ -144,6 +153,7 @@ const UploadScreen = () => {
                   variant="outline"
                   onClick={() => setUploadedFiles([])}
                 >
+                  <X className="h-4 w-4 mr-2" />
                   Limpiar Lista
                 </Button>
               )}
@@ -153,21 +163,27 @@ const UploadScreen = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Estadísticas de Procesamiento</CardTitle>
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              <CardTitle>Estado del Sistema</CardTitle>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">247</div>
-                <p className="text-slate-600">CVs Procesados</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">96.8%</div>
-                <p className="text-slate-600">Tasa de Éxito</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">2.3s</div>
+                <Clock className="h-8 w-8 mx-auto mb-2 text-blue-600" />
+                <div className="text-2xl font-bold text-slate-400">--</div>
                 <p className="text-slate-600">Tiempo Promedio</p>
+              </div>
+              <div className="text-center">
+                <CheckCircle className="h-8 w-8 mx-auto mb-2 text-green-600" />
+                <div className="text-2xl font-bold text-green-600">100%</div>
+                <p className="text-slate-600">Sistema Operativo</p>
+              </div>
+              <div className="text-center">
+                <Brain className="h-8 w-8 mx-auto mb-2 text-purple-600" />
+                <div className="text-2xl font-bold text-slate-400">--</div>
+                <p className="text-slate-600">Precisión IA</p>
               </div>
             </div>
           </CardContent>

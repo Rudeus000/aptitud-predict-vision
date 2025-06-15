@@ -2,6 +2,7 @@
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { User, Settings, LogOut, Brain } from 'lucide-react';
 
 const Header = () => {
   const { userProfile, signOut } = useAuth();
@@ -10,8 +11,11 @@ const Header = () => {
     <header className="bg-white shadow-sm border-b border-slate-200 px-6 py-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">
-            {userProfile?.rol === 'candidato' ? 'Portal del Candidato' : 'Consola de Reclutamiento'}
+          <h2 className="text-2xl font-bold text-slate-800 flex items-center space-x-2">
+            <Brain className="h-6 w-6 text-blue-600" />
+            <span>
+              {userProfile?.rol === 'candidato' ? 'Portal del Candidato' : 'Consola de Reclutamiento'}
+            </span>
           </h2>
           <p className="text-slate-600">
             {userProfile?.rol === 'candidato' 
@@ -33,12 +37,15 @@ const Header = () => {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuItem onClick={() => console.log('Perfil')}>
+              <User className="mr-2 h-4 w-4" />
               Mi Perfil
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => console.log('Configuración')}>
+              <Settings className="mr-2 h-4 w-4" />
               Configuración
             </DropdownMenuItem>
             <DropdownMenuItem onClick={signOut} className="text-red-600">
+              <LogOut className="mr-2 h-4 w-4" />
               Cerrar Sesión
             </DropdownMenuItem>
           </DropdownMenuContent>

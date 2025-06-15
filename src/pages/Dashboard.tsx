@@ -2,76 +2,74 @@
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { FileText, Users, TrendingUp, Brain, Clock, CheckCircle } from 'lucide-react';
 
 const Dashboard = () => {
-  const mockData = {
-    totalCVs: 247,
-    processedToday: 12,
-    averageScore: 78.5,
-    topSkills: [
-      { name: 'Liderazgo', count: 145, percentage: 60 },
-      { name: 'Trabajo en equipo', count: 132, percentage: 55 },
-      { name: 'Comunicación', count: 128, percentage: 52 },
-      { name: 'Adaptabilidad', count: 98, percentage: 40 },
-      { name: 'Resolución de problemas', count: 89, percentage: 36 }
-    ],
-    recentCandidates: [
-      { name: 'Ana García', score: 92, position: 'Desarrolladora Senior' },
-      { name: 'Carlos Mendoza', score: 87, position: 'Analista de Datos' },
-      { name: 'María López', score: 85, position: 'Gerente de Proyecto' }
-    ]
-  };
-
   return (
     <Layout>
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">CVs Procesados</CardTitle>
-              <CardDescription className="text-blue-100">Total acumulado</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg">CVs Procesados</CardTitle>
+                  <CardDescription className="text-blue-100">Total acumulado</CardDescription>
+                </div>
+                <FileText className="h-8 w-8 text-blue-200" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{mockData.totalCVs}</div>
-              <p className="text-blue-100 text-sm">+{mockData.processedToday} hoy</p>
+              <div className="text-3xl font-bold">0</div>
+              <p className="text-blue-100 text-sm">Comienza subiendo CVs</p>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-0">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Puntuación Promedio</CardTitle>
-              <CardDescription className="text-green-100">Aptitud general</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg">Candidatos Activos</CardTitle>
+                  <CardDescription className="text-green-100">En proceso</CardDescription>
+                </div>
+                <Users className="h-8 w-8 text-green-200" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{mockData.averageScore}%</div>
-              <div className="w-full bg-green-400 rounded-full h-2 mt-2">
-                <div 
-                  className="bg-white h-2 rounded-full transition-all duration-1000" 
-                  style={{ width: `${mockData.averageScore}%` }}
-                ></div>
-              </div>
+              <div className="text-3xl font-bold">0</div>
+              <p className="text-green-100 text-sm">Sin candidatos registrados</p>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white border-0">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Candidatos Activos</CardTitle>
-              <CardDescription className="text-purple-100">En proceso</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg">Análisis Completados</CardTitle>
+                  <CardDescription className="text-purple-100">Con predicción IA</CardDescription>
+                </div>
+                <Brain className="h-8 w-8 text-purple-200" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">89</div>
-              <p className="text-purple-100 text-sm">23 nuevos esta semana</p>
+              <div className="text-3xl font-bold">0</div>
+              <p className="text-purple-100 text-sm">Esperando análisis</p>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white border-0">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Análisis Completados</CardTitle>
-              <CardDescription className="text-orange-100">Con predicción</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg">Tiempo Promedio</CardTitle>
+                  <CardDescription className="text-orange-100">Por análisis</CardDescription>
+                </div>
+                <Clock className="h-8 w-8 text-orange-200" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">156</div>
-              <p className="text-orange-100 text-sm">98.5% precisión</p>
+              <div className="text-3xl font-bold">--</div>
+              <p className="text-orange-100 text-sm">Sin datos suficientes</p>
             </CardContent>
           </Card>
         </div>
@@ -79,56 +77,49 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Habilidades Blandas Más Valoradas</CardTitle>
+              <div className="flex items-center space-x-2">
+                <TrendingUp className="h-5 w-5 text-blue-600" />
+                <CardTitle>Habilidades Más Valoradas</CardTitle>
+              </div>
               <CardDescription>
-                Distribución de competencias en los candidatos analizados
+                Las competencias se mostrarán después de analizar candidatos
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {mockData.topSkills.map((skill, index) => (
-                <div key={skill.name} className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="font-medium">{skill.name}</span>
-                    <span className="text-slate-500">{skill.count} candidatos</span>
-                  </div>
-                  <Progress value={skill.percentage} className="h-2" />
-                </div>
-              ))}
+            <CardContent className="flex items-center justify-center h-40">
+              <div className="text-center text-slate-500">
+                <Brain className="h-12 w-12 mx-auto mb-2 text-slate-300" />
+                <p>No hay datos disponibles</p>
+                <p className="text-sm">Sube CVs para comenzar el análisis</p>
+              </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Candidatos Destacados</CardTitle>
+              <div className="flex items-center space-x-2">
+                <Users className="h-5 w-5 text-green-600" />
+                <CardTitle>Candidatos Destacados</CardTitle>
+              </div>
               <CardDescription>
-                Los perfiles con mayor puntuación de aptitud
+                Los mejores perfiles aparecerán aquí
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {mockData.recentCandidates.map((candidate, index) => (
-                <div key={candidate.name} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-semibold">
-                      {candidate.name.split(' ').map(n => n[0]).join('')}
-                    </div>
-                    <div>
-                      <p className="font-medium text-slate-800">{candidate.name}</p>
-                      <p className="text-sm text-slate-500">{candidate.position}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-green-600">{candidate.score}%</div>
-                    <div className="text-xs text-slate-500">Aptitud</div>
-                  </div>
-                </div>
-              ))}
+            <CardContent className="flex items-center justify-center h-40">
+              <div className="text-center text-slate-500">
+                <Users className="h-12 w-12 mx-auto mb-2 text-slate-300" />
+                <p>No hay candidatos registrados</p>
+                <p className="text-sm">Los perfiles destacados aparecerán aquí</p>
+              </div>
             </CardContent>
           </Card>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Análisis Predictivo - Últimos 30 días</CardTitle>
+            <div className="flex items-center space-x-2">
+              <Brain className="h-5 w-5 text-purple-600" />
+              <CardTitle>Análisis Predictivo</CardTitle>
+            </div>
             <CardDescription>
               Rendimiento del modelo de Machine Learning
             </CardDescription>
@@ -136,17 +127,26 @@ const Dashboard = () => {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600">94.2%</div>
+                <div className="text-3xl font-bold text-slate-400">--</div>
                 <p className="text-slate-600">Precisión del Modelo</p>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-green-600">87.5%</div>
-                <p className="text-slate-600">Tasa de Éxito Predicho</p>
+                <div className="text-3xl font-bold text-slate-400">--</div>
+                <p className="text-slate-600">Tasa de Éxito</p>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-purple-600">156</div>
+                <div className="text-3xl font-bold text-slate-400">0</div>
                 <p className="text-slate-600">Predicciones Realizadas</p>
               </div>
+            </div>
+            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-center space-x-2 text-blue-700">
+                <CheckCircle className="h-5 w-5" />
+                <span className="font-medium">Sistema listo para análisis</span>
+              </div>
+              <p className="text-blue-600 text-sm mt-1">
+                El modelo de IA se calibrará automáticamente con los primeros análisis
+              </p>
             </div>
           </CardContent>
         </Card>
