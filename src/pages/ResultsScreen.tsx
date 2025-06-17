@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
@@ -66,7 +65,9 @@ const ResultsScreen = () => {
           data_extraida: item.data_extraida,
           habilidades_indexadas: item.habilidades_indexadas || [],
           fecha_procesamiento: item.fecha_procesamiento,
-          prediccion: item.predicciones[0] || null
+          prediccion: Array.isArray(item.predicciones) && item.predicciones.length > 0 
+            ? item.predicciones[0] 
+            : null
         })) || [];
 
         setCandidates(candidatesData);
@@ -120,14 +121,16 @@ const ResultsScreen = () => {
       return 0;
     });
 
-  const getScoreColor = (score: number) => {
+  const getScoreColor = (score: number | null) => {
+    if (!score) return 'text-slate-600 bg-slate-50';
     if (score >= 90) return 'text-green-600 bg-green-50';
     if (score >= 80) return 'text-blue-600 bg-blue-50';
     if (score >= 70) return 'text-yellow-600 bg-yellow-50';
     return 'text-red-600 bg-red-50';
   };
 
-  const getScoreIcon = (score: number) => {
+  const getScoreIcon = (score: number | null) => {
+    if (!score) return <Clock className="h-4 w-4" />;
     if (score >= 85) return <Star className="h-4 w-4 fill-current" />;
     return <Star className="h-4 w-4" />;
   };
@@ -249,10 +252,12 @@ const ResultsScreen = () => {
                       )}
                     </div>
                     {candidate.prediccion && (
-                      <div className={`px-3 py-2 rounded-lg text-center ${getScoreColor(candidate.prediccion.probabilidad_exito)}`}>
+                      <div className={`px-3 py-2 rounded-lg text-center ${getScoreColor(candidate.prediccion?.probabilidad_exito)}`}>
                         <div className="flex items-center gap-1">
-                          {getScoreIcon(candidate.prediccion.probabilidad_exito)}
-                          <span className="font-bold text-lg">{candidate.prediccion.probabilidad_exito.toFixed(0)}%</span>
+                          {getScoreIcon(candidate.prediccion?.probabilidad_exito)}
+                          <span className="font-bold text-lg">
+                            {candidate.prediccion?.probabilidad_exito?.toFixed(0) || '--'}%
+                          </span>
                         </div>
                         <div className="text-xs">Aptitud</div>
                       </div>
@@ -295,7 +300,7 @@ const ResultsScreen = () => {
                     </div>
                   </div>
 
-                  {candidate.prediccion?.factores_clave && (
+                  {candidate.prediccion?.factores_clave && candidate.prediccion.factores_clave.length > 0 && (
                     <div>
                       <h4 className="font-medium text-slate-700 mb-2">Factores Clave</h4>
                       <div className="space-y-1">

@@ -1,19 +1,29 @@
-
 import { useState } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 const CandidateUpload = () => {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingProgress, setProcessingProgress] = useState(0);
+  const navigate = useNavigate();
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast({
+          title: "Error",
+          description: "El archivo es demasiado grande. El tamaño máximo es 5MB.",
+          variant: "destructive"
+        });
+        return;
+      }
       setUploadedFile(file);
       toast({
         title: "Archivo seleccionado",
@@ -28,28 +38,91 @@ const CandidateUpload = () => {
     setIsProcessing(true);
     setProcessingProgress(0);
 
-    // Simulación de procesamiento
-    const steps = [
-      { progress: 20, message: "Extrayendo texto del documento..." },
-      { progress: 40, message: "Analizando experiencia laboral..." },
-      { progress: 60, message: "Identificando habilidades técnicas..." },
-      { progress: 80, message: "Evaluando habilidades blandas..." },
-      { progress: 100, message: "Generando puntuación de aptitud..." }
-    ];
+    try {
+      // 1. Subir el archivo a Supabase Storage
+      const fileExt = uploadedFile.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `cvs/${fileName}`;
 
-    for (const step of steps) {
-      await new Promise(resolve => setTimeout(resolve, 800));
-      setProcessingProgress(step.progress);
+      const { error: uploadError } = await supabase.storage
+        .from('cvs')
+        .upload(filePath, uploadedFile);
+
+      if (uploadError) {
+        throw new Error(`Error al subir el archivo: ${uploadError.message}`);
+      }
+
+      // Espera 10 segundos para asegurar que el archivo esté disponible en el storage
+      await new Promise(res => setTimeout(res, 10000));
+
+      setProcessingProgress(20);
+
+      // 2. Crear registro en la tabla documentos_cargados
+      const { data: documento, error: docError } = await supabase
+        .from('documentos_cargados')
+        .insert([
+          {
+            nombre_archivo: fileName,
+            ruta_almacenamiento_original: filePath,
+            mime_type: uploadedFile.type,
+            tamano_bytes: uploadedFile.size,
+            uploader_id: (await supabase.auth.getUser()).data.user?.id || 'anonymous'
+          }
+        ])
+        .select()
+        .single();
+
+      if (docError || !documento || !documento.documento_id) {
+        console.error('Error al crear registro:', docError, documento);
+        throw new Error(`Error al crear registro: ${docError?.message || 'No se obtuvo documento_id'}`);
+      }
+
+      setProcessingProgress(40);
+
+      // Espera 2 segundos antes de procesar
+      await new Promise(res => setTimeout(res, 2000));
+
+      // 3. Llamar al endpoint de procesamiento
+      console.log("Enviando documento_id a /process-document:", documento.documento_id);
+      const response = await fetch('http://localhost:8000/process-document', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          documento_id: documento.documento_id,
+          file_path: filePath
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al procesar el documento');
+      }
+
+      setProcessingProgress(100);
+
+      toast({
+        title: "¡Análisis completado!",
+        description: "Tu CV ha sido procesado exitosamente. Serás redirigido a tu panel...",
+      });
+
+      // Esperar 2 segundos antes de redirigir
+      setTimeout(() => {
+        navigate('/candidate/dashboard');
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Error al procesar el documento",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+      setUploadedFile(null);
+      setProcessingProgress(0);
     }
-
-    toast({
-      title: "¡Análisis completado!",
-      description: "Tu CV ha sido procesado exitosamente. Puntuación de aptitud: 87%",
-    });
-
-    setIsProcessing(false);
-    setUploadedFile(null);
-    setProcessingProgress(0);
   };
 
   return (

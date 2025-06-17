@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,11 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { toast } from '@/hooks/use-toast';
 import { Upload, FileText, X, Brain, Clock, CheckCircle } from 'lucide-react';
+import { uploadDocument, processDocument } from '../services/api';
 
 const UploadScreen = () => {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingProgress, setProcessingProgress] = useState(0);
+  const [results, setResults] = useState<any[]>([]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -27,21 +28,38 @@ const UploadScreen = () => {
 
   const processFiles = async () => {
     if (uploadedFiles.length === 0) return;
-    
     setIsProcessing(true);
     setProcessingProgress(0);
+    setResults([]);
 
-    // Simulación de procesamiento
-    for (let i = 0; i <= 100; i += 5) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-      setProcessingProgress(i);
+    let processed = 0;
+    for (const file of uploadedFiles) {
+      try {
+        // 1. Subir el documento
+        const uploadResult = await uploadDocument(file);
+        // 2. Procesar el documento
+        const processResult = await processDocument(uploadResult.documento_id);
+        setResults(prev => [...prev, { file: file.name, status: 'ok', result: processResult }]);
+        toast({
+          title: `✔️ ${file.name}`,
+          description: 'Procesado correctamente',
+        });
+      } catch (error: any) {
+        setResults(prev => [...prev, { file: file.name, status: 'error', error: error?.message || 'Error' }]);
+        toast({
+          title: `❌ ${file.name}`,
+          description: error?.message || 'Error al procesar',
+          variant: 'destructive',
+        });
+      }
+      processed++;
+      setProcessingProgress(Math.round((processed / uploadedFiles.length) * 100));
     }
 
     toast({
       title: "¡Procesamiento completado!",
-      description: `${uploadedFiles.length} CV(s) analizados exitosamente`,
+      description: `${uploadedFiles.length} CV(s) analizados`,
     });
-
     setIsProcessing(false);
     setUploadedFiles([]);
     setProcessingProgress(0);
@@ -135,6 +153,27 @@ const UploadScreen = () => {
                 <p className="text-sm text-slate-600">
                   Extrayendo datos, analizando habilidades y generando predicciones...
                 </p>
+              </div>
+            )}
+
+            {results.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-semibold text-slate-800 flex items-center space-x-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <span>Resultados</span>
+                </h4>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {results.map((res, idx) => (
+                    <div key={idx} className="p-3 bg-gray-50 border rounded">
+                      <div className="font-medium text-slate-700">{res.file}</div>
+                      {res.status === 'ok' ? (
+                        <pre className="text-xs text-green-700 whitespace-pre-wrap">{JSON.stringify(res.result, null, 2)}</pre>
+                      ) : (
+                        <div className="text-xs text-red-600">Error: {res.error}</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
