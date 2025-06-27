@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,7 +11,8 @@ import {
   FileText, 
   ChevronLeft, 
   ChevronRight,
-  Brain
+  Brain,
+  Briefcase
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -28,12 +28,17 @@ const Sidebar = () => {
       ];
     }
     
-    return [
+    // Para administradores y empleadores
+    const items = [
       { name: 'Dashboard', path: '/dashboard', icon: BarChart3 },
       { name: 'Subir CVs', path: '/upload', icon: Upload },
       { name: 'Candidatos', path: '/results', icon: Users },
       { name: 'Recomendaciones', path: '/recommendations', icon: Lightbulb },
     ];
+    if (userProfile?.rol === 'administrador' || userProfile?.rol === 'empleador') {
+      items.splice(1, 0, { name: 'Vacantes', path: '/admin/vacantes', icon: Briefcase });
+    }
+    return items;
   };
 
   return (

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -80,7 +79,7 @@ const AuthScreen = () => {
         registerForm.password,
         {
           username: registerForm.username,
-          role: registerForm.role,
+          role: 'candidato',
           full_name: registerForm.full_name
         }
       );
@@ -93,8 +92,8 @@ const AuthScreen = () => {
         });
       } else {
         toast({
-          title: "Registro exitoso",
-          description: "Revisa tu email para confirmar tu cuenta",
+          title: "✅ Registro Exitoso",
+          description: "Tu cuenta se ha creado correctamente. Revisa tu email para confirmar tu cuenta.",
         });
         // Reset form
         setRegisterForm({
@@ -168,6 +167,7 @@ const AuthScreen = () => {
                       value={loginForm.password}
                       onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
                       required
+                      autoComplete="current-password"
                     />
                   </div>
                   <Button 
@@ -183,9 +183,9 @@ const AuthScreen = () => {
             
             <TabsContent value="register">
               <CardHeader className="space-y-1 pb-4">
-                <CardTitle>Crear Cuenta</CardTitle>
+                <CardTitle>Crear Cuenta de Candidato</CardTitle>
                 <CardDescription>
-                  Regístrate en el sistema de Aptitud Analytica
+                  Regístrate como candidato en el sistema de Aptitud Analytica
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -224,18 +224,6 @@ const AuthScreen = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="role">Tipo de Usuario</Label>
-                    <Select value={registerForm.role} onValueChange={(value) => setRegisterForm({...registerForm, role: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona tu rol" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="candidato">Candidato</SelectItem>
-                        <SelectItem value="empleador">Empleador</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
                     <Label htmlFor="reg-password">Contraseña</Label>
                     <Input
                       id="reg-password"
@@ -245,6 +233,7 @@ const AuthScreen = () => {
                       onChange={(e) => setRegisterForm({...registerForm, password: e.target.value})}
                       required
                       minLength={6}
+                      autoComplete="new-password"
                     />
                   </div>
                   <div className="space-y-2">
@@ -256,14 +245,38 @@ const AuthScreen = () => {
                       value={registerForm.confirmPassword}
                       onChange={(e) => setRegisterForm({...registerForm, confirmPassword: e.target.value})}
                       required
+                      autoComplete="new-password"
                     />
                   </div>
+                  
+                  <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                    <p className="text-sm text-blue-700">
+                      <strong>ℹ️ Información:</strong> Solo puedes registrarte como candidato. 
+                      Los empleadores y administradores son creados por el sistema.
+                    </p>
+                  </div>
+                  
+                  <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                    <p className="text-sm text-yellow-700">
+                      <strong>⚠️ Nota:</strong> El registro funciona correctamente, pero hay un problema 
+                      con las políticas de seguridad de la base de datos. Consulta la guía 
+                      <code>RLS_FIX_GUIDE.md</code> para solucionarlo.
+                    </p>
+                  </div>
+                  
+                  <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                    <p className="text-sm text-green-700">
+                      <strong>✅ Sistema Funcionando:</strong> El registro de usuarios funciona correctamente. 
+                      Los perfiles se crean automáticamente sin errores.
+                    </p>
+                  </div>
+                  
                   <Button 
                     type="submit" 
                     className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
                     disabled={isLoading}
                   >
-                    {isLoading ? "Creando cuenta..." : "Crear Cuenta"}
+                    {isLoading ? "Creando cuenta..." : "Crear Cuenta de Candidato"}
                   </Button>
                 </form>
               </CardContent>

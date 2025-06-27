@@ -1,10 +1,11 @@
-
 import { useEffect, useState } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { FileText, Users, TrendingUp, Brain, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from '@/hooks/use-toast';
 
 interface DashboardStats {
   totalDocuments: number;
@@ -63,7 +64,7 @@ const getDemoData = (): DashboardStats => ({
 });
 
 const Dashboard = () => {
-  const { userProfile } = useAuth();
+  const { userProfile, signOut } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
     totalDocuments: 0,
     activeCandidates: 0,
@@ -189,6 +190,23 @@ const Dashboard = () => {
     fetchDashboardData();
   }, []);
 
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Sesión cerrada",
+        description: "Has cerrado sesión exitosamente.",
+      });
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+      toast({
+        title: "Error",
+        description: "Error al cerrar sesión",
+        variant: "destructive"
+      });
+    }
+  };
+
   if (loading) {
     return (
       <Layout>
@@ -205,6 +223,17 @@ const Dashboard = () => {
   return (
     <Layout>
       <div className="space-y-6">
+        {/* Botón de logout de prueba */}
+        <div className="flex justify-end">
+          <Button 
+            onClick={handleLogout}
+            variant="destructive"
+            className="mb-4"
+          >
+            🚪 Cerrar Sesión (Prueba)
+          </Button>
+        </div>
+
         {usingDemoData && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <div className="flex items-center space-x-2 text-blue-700">

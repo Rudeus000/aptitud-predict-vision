@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -105,11 +104,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signUp = async (email: string, password: string, userData?: { username?: string; role?: string; full_name?: string }) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      console.log('Iniciando registro con datos:', { email, userData });
+      
+      // Validación básica de email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return { error: { message: 'Formato de email inválido' } };
+      }
+      
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
           data: {
             username: userData?.username || email.split('@')[0],
             role: userData?.role || 'candidato',
@@ -118,8 +124,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       });
 
-      return { error };
+      if (error) {
+        console.error('Error en signUp:', error);
+        
+        // Manejar errores específicos de Supabase
+        if (error.message.includes('invalid')) {
+          return { error: { message: 'El email proporcionado no es válido. Verifica que la URL del sitio en Supabase esté configurada correctamente.' } };
+        }
+        
+        if (error.message.includes('already registered')) {
+          return { error: { message: 'Este email ya está registrado en el sistema.' } };
+        }
+        
+        return { error };
+      }
+
+      console.log('Registro exitoso:', data);
+      
+      // El trigger automático crea el perfil automáticamente
+      // No necesitamos hacer nada más aquí
+      if (data.user) {
+        console.log('✅ Usuario registrado exitosamente');
+        console.log('📧 Email:', data.user.email);
+        console.log('🆔 ID:', data.user.id);
+        console.log('📝 El perfil se creará automáticamente');
+      }
+
+      return { error: null };
     } catch (error) {
+      console.error('Error inesperado en signUp:', error);
       return { error };
     }
   };
@@ -145,8 +178,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(null);
       setUserProfile(null);
       setSession(null);
+      
+      // Limpiar cualquier dato local adicional
+      localStorage.removeItem('currentUser');
+      sessionStorage.clear();
+      
+      // Redirigir al usuario a la página de login usando window.location
+      // para asegurar una redirección completa
+      window.location.replace('/');
     } catch (error) {
       console.error('Error signing out:', error);
+      // Aún así, limpiar el estado local y redirigir
+      setUser(null);
+      setUserProfile(null);
+      setSession(null);
+      localStorage.removeItem('currentUser');
+      sessionStorage.clear();
+      window.location.replace('/');
     }
   };
 

@@ -7,15 +7,15 @@ export const useCandidateData = () => {
     queryFn: async () => {
       try {
         // Primero obtenemos los documentos sin el join forzado
-        const { data: documentos, error: docError } = await supabase
-          .from('documentos_cargados')
-          .select(`
+      const { data: documentos, error: docError } = await supabase
+        .from('documentos_cargados')
+        .select(`
+          *,
+          datos_documentos_procesados (
             *,
-            datos_documentos_procesados (
-              *,
-              predicciones (*)
-            )
-          `)
+            predicciones (*)
+          )
+        `)
           .order('fecha_carga', { ascending: false })
           .limit(1);
 
@@ -37,9 +37,9 @@ export const useCandidateData = () => {
 
         // Si hay datos procesados, obtenemos las postulaciones
         if (documento.datos_documentos_procesados && Array.isArray(documento.datos_documentos_procesados) && documento.datos_documentos_procesados.length > 0) {
-          const { data: postulaciones, error: postError } = await supabase
-            .from('postulaciones')
-            .select('*')
+      const { data: postulaciones, error: postError } = await supabase
+        .from('postulaciones')
+        .select('*')
             .eq('procesado_data_id', documento.datos_documentos_procesados[0]?.procesado_id);
 
           if (postError) {
@@ -47,12 +47,12 @@ export const useCandidateData = () => {
             throw postError;
           }
 
-          return {
+      return {
             document: documento,
-            applications: postulaciones || [],
+        applications: postulaciones || [],
             processedData: documento.datos_documentos_procesados[0],
             prediction: documento.datos_documentos_procesados[0]?.predicciones[0]
-          };
+      };
         }
 
         // Si no hay datos procesados, retornamos solo el documento

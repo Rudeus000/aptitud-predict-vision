@@ -227,6 +227,20 @@ const UploadScreen = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* ¿Qué analizamos? */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-lg font-semibold mb-4">¿Qué analizamos?</h3>
+            <ul className="space-y-2 text-green-700">
+              <li>✅ Experiencia laboral y trayectoria</li>
+              <li>✅ Habilidades técnicas y certificaciones</li>
+              <li>✅ Educación y formación académica</li>
+              <li>✅ Habilidades blandas y competencias</li>
+              <li>✅ Proyectos y logros destacados</li>
+            </ul>
+          </div>
+        </div>
       </div>
     </Layout>
   );

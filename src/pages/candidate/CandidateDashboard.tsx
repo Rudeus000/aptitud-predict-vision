@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +18,29 @@ const CandidateDashboard = () => {
   const [analysisModalOpen, setAnalysisModalOpen] = useState(false);
   const [surveyModalOpen, setSurveyModalOpen] = useState(false);
   const [alertsModalOpen, setAlertsModalOpen] = useState(false);
+
+  // Estado para vacantes
+  const [vacantes, setVacantes] = useState([]);
+  const [loadingVacantes, setLoadingVacantes] = useState(true);
+
+  useEffect(() => {
+    // Llama a tu backend para obtener vacantes activas
+    fetch('http://localhost:8000/vacantes') // Ajusta la URL según tu backend
+      .then(res => res.json())
+      .then(data => setVacantes(data))
+      .catch(() => setVacantes([]))
+      .finally(() => setLoadingVacantes(false));
+  }, []);
+
+  const postularme = async (vacanteId) => {
+    await fetch('http://localhost:8000/postulaciones', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ vacante_id: vacanteId }),
+    });
+    alert('¡Te has postulado con éxito!');
+    // Aquí podrías refrescar las postulaciones del usuario si tienes esa función
+  };
 
   if (isLoading) {
     return (
@@ -79,18 +101,35 @@ const CandidateDashboard = () => {
                   <p className="text-sm text-slate-500">{profileData.email || 'email@ejemplo.com'}</p>
                 </div>
               </div>
-              <div className="text-center">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center text-white mb-2">
-                  <div>
-                    <div className="text-xl font-bold">{Math.round(prediction?.probabilidad_exito || 85)}%</div>
-                    <div className="text-xs">Aptitud</div>
+              {prediction?.probabilidad_exito !== undefined && prediction?.probabilidad_exito !== null ? (
+                <div className="text-center">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center text-white mb-2">
+                    <div>
+                      <div className="text-xl font-bold">{Math.round(prediction.probabilidad_exito)}%</div>
+                      <div className="text-xs">Aptitud</div>
+                    </div>
                   </div>
+                  <Badge variant="secondary" className="text-xs">
+                    CV Actualizado
+                  </Badge>
                 </div>
-                <Badge variant="secondary" className="text-xs">
-                  CV Actualizado
-                </Badge>
-              </div>
+              ) : (
+                <div className="text-center">
+                  <div className="w-20 h-20 rounded-full bg-slate-300 flex items-center justify-center text-white mb-2">
+                    <div>
+                      <div className="text-xl font-bold">--</div>
+                      <div className="text-xs">Aptitud</div>
+                    </div>
+                  </div>
+                  <div className="text-xs text-slate-400">Esperando análisis del CV...</div>
+                </div>
+              )}
             </div>
+            {!candidateData.document && (
+              <div className="text-center text-slate-500 mt-4">
+                Sube tu CV para ver tu perfil completo y recibir recomendaciones.
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -138,35 +177,73 @@ const CandidateDashboard = () => {
               </CardContent>
             </Card>
 
+            {/* Vacantes disponibles para postularse */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Vacantes Disponibles</CardTitle>
+                <CardDescription>Postúlate a las vacantes que te interesen</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {loadingVacantes ? (
+                  <div className="text-center text-slate-500">Cargando vacantes...</div>
+                ) : vacantes.length === 0 ? (
+                  <div className="text-center text-slate-500">No hay vacantes disponibles en este momento.</div>
+                ) : (
+                  vacantes.map((vacante: any) => (
+                    <div key={vacante.vacante_id} className="border rounded-lg p-4 flex justify-between items-center">
+                      <div>
+                        <h4 className="font-semibold text-slate-800">{vacante.titulo}</h4>
+                        <p className="text-sm text-slate-600">{vacante.descripcion}</p>
+                      </div>
+                      <Button onClick={() => postularme(vacante.vacante_id)}>
+                        Postularme
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+
             {/* Retroalimentación y mejoras */}
             <Card>
               <CardHeader>
                 <CardTitle>Recomendaciones para Mejorar tu Perfil</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                  <h4 className="font-semibold text-blue-800 mb-2">💡 Sugerencias de IA</h4>
-                  <ul className="space-y-2 text-blue-700">
-                    {prediction?.factores_clave?.slice(0, 3).map((factor: string, index: number) => (
-                      <li key={index}>• {factor}</li>
-                    )) || (
-                      <>
-                        <li>• Considera agregar certificaciones en cloud computing</li>
-                        <li>• Mejora tu sección de proyectos con ejemplos específicos</li>
-                        <li>• Desarrolla más habilidades de liderazgo</li>
-                      </>
-                    )}
-                  </ul>
-                </div>
-                
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                  <h4 className="font-semibold text-green-800 mb-2">✅ Fortalezas Identificadas</h4>
-                  <ul className="space-y-2 text-green-700">
-                    <li>• Excelente experiencia técnica en {skills.slice(0, 2).join(' y ')}</li>
-                    <li>• {profileData.experiencia_anos} años de experiencia sólida</li>
-                    <li>• Perfil altamente compatible con las vacantes</li>
-                  </ul>
-                </div>
+                {candidateData.document && candidateData.processedData ? (
+                  <>
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <h4 className="font-semibold text-blue-800 mb-2">💡 Sugerencias de IA</h4>
+                      <ul className="space-y-2 text-blue-700">
+                        {prediction?.factores_clave?.length > 0 ? (
+                          prediction.factores_clave.slice(0, 3).map((factor: string, index: number) => (
+                            <li key={index}>• {factor}</li>
+                          ))
+                        ) : (
+                          <li>No hay sugerencias disponibles aún.</li>
+                        )}
+                      </ul>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <h4 className="font-semibold text-green-800 mb-2">✅ Fortalezas Identificadas</h4>
+                      <ul className="space-y-2 text-green-700">
+                        {skills.length > 0 ? (
+                          <>
+                            <li>• Excelente experiencia técnica en {skills.slice(0, 2).join(' y ')}</li>
+                            <li>• {profileData.experiencia_anos} años de experiencia sólida</li>
+                            <li>• Perfil altamente compatible con las vacantes</li>
+                          </>
+                        ) : (
+                          <li>No se han identificado fortalezas aún.</li>
+                        )}
+                      </ul>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center text-slate-500 py-8">
+                    Sube tu CV para recibir recomendaciones y análisis personalizados.
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -179,20 +256,26 @@ const CandidateDashboard = () => {
                 <CardTitle>Habilidades Técnicas</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {skills.slice(0, 6).map((skill: string, index: number) => (
-                  <div key={index} className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="font-medium">{skill}</span>
-                      <span className="text-slate-500">{85 + (index * 2)}%</span>
+                {candidateData.document && skills.length > 0 ? (
+                  skills.slice(0, 6).map((skill: string, index: number) => (
+                    <div key={index} className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="font-medium">{skill}</span>
+                        <span className="text-slate-500">{85 + (index * 2)}%</span>
+                      </div>
+                      <div className="w-full bg-slate-200 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full transition-all duration-1000 ${getSkillColor(index)}`}
+                          style={{ width: `${85 + (index * 2)}%` }}
+                        ></div>
+                      </div>
                     </div>
-                    <div className="w-full bg-slate-200 rounded-full h-2">
-                      <div 
-                        className={`h-2 rounded-full transition-all duration-1000 ${getSkillColor(index)}`}
-                        style={{ width: `${85 + (index * 2)}%` }}
-                      ></div>
-                    </div>
+                  ))
+                ) : (
+                  <div className="text-center text-slate-500 py-4">
+                    Sube tu CV para ver tus habilidades técnicas analizadas.
                   </div>
-                ))}
+                )}
               </CardContent>
             </Card>
 
@@ -244,16 +327,24 @@ const CandidateDashboard = () => {
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">
-                    {Math.round(prediction?.probabilidad_exito || 85)}%
+                    {candidateData.document && prediction?.probabilidad_exito !== undefined ? (
+                      `${Math.round(prediction.probabilidad_exito)}%`
+                    ) : (
+                      '--'
+                    )}
                   </div>
                   <p className="text-sm text-slate-600">Puntuación de Aptitud</p>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-purple-600">
-                    {new Date(candidateData.document?.fecha_carga).toLocaleDateString('es', { 
-                      day: 'numeric', 
-                      month: 'short' 
-                    })}
+                    {candidateData.document?.fecha_carga ? (
+                      new Date(candidateData.document.fecha_carga).toLocaleDateString('es', { 
+                        day: 'numeric', 
+                        month: 'short' 
+                      })
+                    ) : (
+                      '--'
+                    )}
                   </div>
                   <p className="text-sm text-slate-600">Última Actualización</p>
                 </div>
