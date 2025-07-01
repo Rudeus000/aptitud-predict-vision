@@ -55,4 +55,22 @@ ALTER TABLE public.usuarios ENABLE ROW LEVEL SECURITY;
 
 -- 9. Crear un índice para mejorar el rendimiento
 CREATE INDEX IF NOT EXISTS idx_usuarios_usuario_id ON public.usuarios(usuario_id);
-CREATE INDEX IF NOT EXISTS idx_usuarios_nombre_usuario ON public.usuarios(nombre_usuario); 
+CREATE INDEX IF NOT EXISTS idx_usuarios_nombre_usuario ON public.usuarios(nombre_usuario);
+
+-- Asegura que las columnas usuario_id y puntuacion_aptitud existen en recomendaciones (idempotente)
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name='recomendaciones' AND column_name='usuario_id'
+    ) THEN
+        ALTER TABLE public.recomendaciones ADD COLUMN usuario_id UUID REFERENCES auth.users(id);
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name='recomendaciones' AND column_name='puntuacion_aptitud'
+    ) THEN
+        ALTER TABLE public.recomendaciones ADD COLUMN puntuacion_aptitud INTEGER;
+    END IF;
+END $$;
+-- Fin de migración segura para recomendaciones 

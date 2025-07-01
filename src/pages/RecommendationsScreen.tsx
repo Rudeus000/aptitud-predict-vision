@@ -1,11 +1,42 @@
-
 import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Brain, TrendingUp, Users, Lightbulb, AlertCircle, CheckCircle, BarChart3, Target } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 const RecommendationsScreen = () => {
+  const [recomendaciones, setRecomendaciones] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRecomendaciones = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('recomendaciones')
+        .select('*')
+        .order('fecha_generacion', { ascending: false });
+      if (!error && data) setRecomendaciones(data);
+      setLoading(false);
+    };
+    fetchRecomendaciones();
+  }, []);
+
+  const totalActivas = recomendaciones.length;
+  const ultimaActualizacion = recomendaciones[0]?.fecha_generacion
+    ? new Date(recomendaciones[0].fecha_generacion).toLocaleString('es-ES')
+    : '--';
+
+  // Calcular confianza promedio
+  const recomendacionesConPuntaje = recomendaciones.filter(r => r.puntuacion_aptitud !== null && r.puntuacion_aptitud !== undefined);
+  const confianzaPromedio = recomendacionesConPuntaje.length > 0
+    ? Math.round(recomendacionesConPuntaje.reduce((acc, r) => acc + r.puntuacion_aptitud, 0) / recomendacionesConPuntaje.length)
+    : null;
+
+  // Calcular total de alta prioridad
+  const totalAltaPrioridad = recomendaciones.filter(r => r.prioridad && r.prioridad.toLowerCase() === 'alta').length;
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -22,21 +53,41 @@ const RecommendationsScreen = () => {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-slate-400">0</div>
+                <div className="text-2xl font-bold text-slate-700">{totalActivas}</div>
                 <p className="text-slate-600 text-sm">Recomendaciones Activas</p>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-slate-400">--</div>
+                <div className="text-2xl font-bold text-slate-700">{confianzaPromedio !== null ? confianzaPromedio + '%' : '--'}</div>
                 <p className="text-slate-600 text-sm">Confianza Promedio</p>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-slate-400">0</div>
+                <div className="text-2xl font-bold text-slate-700">{totalAltaPrioridad}</div>
                 <p className="text-slate-600 text-sm">Alta Prioridad</p>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-slate-400">--</div>
+                <div className="text-2xl font-bold text-slate-700">{ultimaActualizacion}</div>
                 <p className="text-slate-600 text-sm">Última Actualización</p>
               </div>
+            </div>
+            <div className="mt-6">
+              {loading ? (
+                <div className="text-center text-slate-500">Cargando recomendaciones...</div>
+              ) : recomendaciones.length === 0 ? (
+                <div className="text-center text-slate-500">No hay recomendaciones generadas aún.</div>
+              ) : (
+                <ul className="space-y-2">
+                  {recomendaciones.map((rec) => (
+                    <li key={rec.recomendacion_id} className="border rounded p-3 flex flex-col md:flex-row md:items-center md:justify-between">
+                      <div>
+                        <span className="font-semibold text-blue-700">{rec.titulo || rec.texto}</span>
+                        <span className="ml-2 text-xs text-slate-500">{new Date(rec.fecha_generacion).toLocaleString('es-ES')}</span>
+                        <div className="text-slate-600 text-sm mt-1">{rec.descripcion}</div>
+                      </div>
+                      <Badge className="mt-2 md:mt-0">{rec.prioridad || 'media'}</Badge>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </CardContent>
         </Card>

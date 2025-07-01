@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -72,6 +71,48 @@ const AnalysisModal = ({ open, onOpenChange, candidateData }: AnalysisModalProps
               </div>
             </CardContent>
           </Card>
+
+          {/* Habilidades técnicas y profesionales por categoría */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Habilidades Detectadas por Categoría</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {processedData.data_extraida?.habilidades_detalladas && (
+                <div className="space-y-4">
+                  {Object.entries(processedData.data_extraida.habilidades_detalladas).map(
+                    ([categoria, skills]: [string, any[]]) =>
+                      skills && skills.length > 0 ? (
+                        <div key={categoria}>
+                          <div className="font-semibold text-blue-700 mb-1 capitalize">{categoria.replace(/_/g, ' ')}</div>
+                          <div className="flex flex-wrap gap-2 mb-2">
+                            {skills.map((skill, idx) => (
+                              <Badge key={idx} variant="outline">{skill}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Otras habilidades detectadas (si existen) */}
+          {processedData.data_extraida?.otras_habilidades && processedData.data_extraida.otras_habilidades.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Otras habilidades detectadas</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {processedData.data_extraida.otras_habilidades.map((skill: string, idx: number) => (
+                    <Badge key={idx} variant="secondary">{skill}</Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Datos del perfil */}
           <Card>

@@ -9,10 +9,14 @@ import CVUploadModal from '@/components/candidate/CVUploadModal';
 import AnalysisModal from '@/components/candidate/AnalysisModal';
 import SurveyModal from '@/components/candidate/SurveyModal';
 import AlertsModal from '@/components/candidate/AlertsModal';
+import { useQueryClient } from '@tanstack/react-query';
+
+type Recommendation = { puntuacion_aptitud?: number | null; [key: string]: any };
 
 const CandidateDashboard = () => {
   const { data: candidateData, isLoading } = useCandidateData();
-  const { data: recommendations } = useRecommendations();
+  const { data: recommendations } = useRecommendations() as { data: Recommendation[] };
+  const queryClient = useQueryClient();
   
   const [cvModalOpen, setCvModalOpen] = useState(false);
   const [analysisModalOpen, setAnalysisModalOpen] = useState(false);
@@ -32,14 +36,23 @@ const CandidateDashboard = () => {
       .finally(() => setLoadingVacantes(false));
   }, []);
 
-  const postularme = async (vacanteId) => {
+  // Refrescar recomendaciones y datos tras subir CV
+  useEffect(() => {
+    if (!isLoading && candidateData?.document) {
+      queryClient.invalidateQueries({ queryKey: ['recommendations'] });
+      queryClient.invalidateQueries({ queryKey: ['candidateData'] });
+    }
+  }, [candidateData?.document, isLoading, queryClient]);
+
+  const postularme = async (vacanteId: number) => {
     await fetch('http://localhost:8000/postulaciones', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ vacante_id: vacanteId }),
     });
     alert('¡Te has postulado con éxito!');
-    // Aquí podrías refrescar las postulaciones del usuario si tienes esa función
+    // Refresca postulaciones del usuario si tienes esa función
+    queryClient.invalidateQueries({ queryKey: ['candidateData'] });
   };
 
   if (isLoading) {
@@ -68,6 +81,11 @@ const CandidateDashboard = () => {
   const profileData = candidateData.processedData?.data_extraida || {};
   const prediction = candidateData.prediction;
   const skills = candidateData.processedData?.habilidades_indexadas || [];
+
+  // Obtener la puntuación de aptitud de la recomendación más reciente si existe
+  const latestRecommendationScore = recommendations && recommendations.length > 0
+    ? recommendations[0].puntuacion_aptitud
+    : null;
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -106,6 +124,18 @@ const CandidateDashboard = () => {
                   <div className="w-20 h-20 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center text-white mb-2">
                     <div>
                       <div className="text-xl font-bold">{Math.round(prediction.probabilidad_exito)}%</div>
+                      <div className="text-xs">Aptitud</div>
+                    </div>
+                  </div>
+                  <Badge variant="secondary" className="text-xs">
+                    CV Actualizado
+                  </Badge>
+                </div>
+              ) : latestRecommendationScore !== null && latestRecommendationScore !== undefined ? (
+                <div className="text-center">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center text-white mb-2">
+                    <div>
+                      <div className="text-xl font-bold">{latestRecommendationScore}%</div>
                       <div className="text-xs">Aptitud</div>
                     </div>
                   </div>
@@ -215,9 +245,12 @@ const CandidateDashboard = () => {
                     <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                       <h4 className="font-semibold text-blue-800 mb-2">💡 Sugerencias de IA</h4>
                       <ul className="space-y-2 text-blue-700">
-                        {prediction?.factores_clave?.length > 0 ? (
-                          prediction.factores_clave.slice(0, 3).map((factor: string, index: number) => (
-                            <li key={index}>• {factor}</li>
+                        {recommendations && recommendations.length > 0 ? (
+                          recommendations.map((rec: any, index: number) => (
+                            <li key={rec.recomendacion_id}>
+                              <span className="font-semibold">{rec.titulo}</span>
+                              <span className="ml-2 text-xs text-slate-500">{new Date(rec.fecha_generacion).toLocaleString('es-PE')}</span>
+                            </li>
                           ))
                         ) : (
                           <li>No hay sugerencias disponibles aún.</li>
@@ -329,8 +362,10 @@ const CandidateDashboard = () => {
                   <div className="text-2xl font-bold text-green-600">
                     {candidateData.document && prediction?.probabilidad_exito !== undefined ? (
                       `${Math.round(prediction.probabilidad_exito)}%`
+                    ) : latestRecommendationScore !== null && latestRecommendationScore !== undefined ? (
+                      `${latestRecommendationScore}%`
                     ) : (
-                      '--'
+                      <span className="text-slate-400">--<br/><span className='text-xs'>Aún no hay predicción generada</span></span>
                     )}
                   </div>
                   <p className="text-sm text-slate-600">Puntuación de Aptitud</p>

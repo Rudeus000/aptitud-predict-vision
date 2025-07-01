@@ -6,12 +6,14 @@ import { Progress } from '@/components/ui/progress';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 
 const CandidateUpload = () => {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingProgress, setProcessingProgress] = useState(0);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -105,6 +107,9 @@ const CandidateUpload = () => {
         title: "¡Análisis completado!",
         description: "Tu CV ha sido procesado exitosamente. Serás redirigido a tu panel...",
       });
+
+      // Refresca los datos del candidato antes de redirigir
+      await queryClient.invalidateQueries({ queryKey: ['candidateData'] });
 
       // Esperar 2 segundos antes de redirigir
       setTimeout(() => {
